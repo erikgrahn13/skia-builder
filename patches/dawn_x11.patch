@@ -1,0 +1,10 @@
+--- a/third_party/dawn/build_dawn.py
++++ b/third_party/dawn/build_dawn.py
+@@ -152,6 +152,9 @@
+   if target_os == "Darwin" or target_os == "iOS":
+     configure_cmd.append(f"-DCMAKE_OSX_ARCHITECTURES={target_cpu}")
+ 
++  if target_os == "Linux":
++    configure_cmd.append("-DDAWN_USE_X11=ON")
++
+   env = os.environ.copy()
