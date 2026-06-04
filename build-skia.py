@@ -275,6 +275,7 @@ PLATFORM_GN_ARGS = {
     skia_use_vulkan = true
     skia_use_dawn = true
     skia_use_x11 = true
+    dawn_use_x11 = true
     skia_use_fontconfig = true
     skia_use_freetype = true
     skia_use_system_freetype2 = false
