@@ -223,6 +223,10 @@ PLATFORM_GN_ARGS = {
 
     "win": """
     skia_use_dawn = true
+    # Keep Direct3D enabled. M149 makes GrBackendFormatData::equal unconditionally
+    # pure virtual while GrD3DBackendFormatData's override is gated by GPU_TEST_UTILS,
+    # leaving the subclass abstract in Release builds. patches/fix_m149_d3d_backend_surface.patch
+    # ungates the override so D3D Release builds compile. Re-enable plain once Skia fixes upstream.
     skia_use_direct3d = true
     is_trivial_abi = false
     """,
