@@ -59,16 +59,19 @@ def _patch_shared_fence(target: Path):
     #                      "D3D12 create fence handle"));
     #     DAWN_ASSERT(ownedHandle.IsValid());
     #
-    # Use re.DOTALL so '.' matches newlines; .*? is non-greedy so we stop at
-    # the first "D3D12 create fence handle" occurrence.
+    # IMPORTANT: anchor at "CreateSharedHandle(" so the pattern cannot accidentally
+    # match the earlier DAWN_TRY(OpenSharedHandle...) call in the first Create overload
+    # and then span across the function boundary via a greedy/dotall '.*?'.
     pattern = re.compile(
-        r'( +)DAWN_TRY\(.*?"D3D12 create fence handle"\)\);\s*\n'
+        r'( +)DAWN_TRY\(\s*\n'
+        r'\s+CheckHRESULT\(device->GetD3D12Device\(\)->CreateSharedHandle\('
+        r'.*?"D3D12 create fence handle"\)\);\s*\n'
         r'\s+DAWN_ASSERT\(ownedHandle\.IsValid\(\)\);',
         re.DOTALL,
     )
 
     m = pattern.search(content)
-    if not m or "CreateSharedHandle" not in m.group(0):
+    if not m:
         print("  WARNING: Could not locate the multi-line DAWN_TRY CreateSharedHandle block "
               "in SharedFenceD3D12.cpp — Dawn version may have changed. Skipping.")
         return
@@ -84,6 +87,8 @@ def _patch_shared_fence(target: Path):
         f"{indent}    if (FAILED(fenceHandleHr) && fenceHandleHr != E_NOTIMPL) {{\n"
         f"{indent}        DAWN_TRY(CheckHRESULT(fenceHandleHr, \"D3D12 create fence handle\"));\n"
         f"{indent}    }}\n"
+        f"{indent}    // If E_NOTIMPL, ownedHandle stays invalid; SharedFence is created\n"
+        f"{indent}    // without a shareable system handle, which limits interop only.\n"
         f"{indent}}}"
     )
 
